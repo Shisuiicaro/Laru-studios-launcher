@@ -1,5 +1,5 @@
-appId: 'HastaStudiosLauncher'
-productName: 'Hasta Studios Launcher'
+appId: 'LaruStudiosLauncher'
+productName: 'Laru Studios Launcher'
 artifactName: '${productName}-setup-${version}.${ext}'
 
 copyright: 'Copyright © 2018-2024 Shisuys'
@@ -42,8 +42,8 @@ linux:
   target: 'AppImage'
   maintainer: 'Shisuys'
   vendor: 'Shisuys'
-  synopsis: 'Hasta Studios Minecraft Launcher'
-  description: 'Oficial Laucnher For All Hasta Studios And ZSMP Projects'
+  synopsis: 'Laru Studios Minecraft Launcher'
+  description: 'Oficial Laucher For All Laru Studios And LSMP Projects'
   category: 'Game'
 
 
