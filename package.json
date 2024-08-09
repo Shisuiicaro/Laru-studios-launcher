@@ -1,11 +1,11 @@
 {
-    "name": "HastaStudiosLauncher",
-    "version": "2.0.7",
-    "productName": "Hasta Studios Launcher",
-    "description": "Oficial Laucnher For All Hasta Studios And ZSMP Projects",
+    "name": "LaruStudiosLauncher",
+    "version": "2.1.7",
+    "productName": "Laru Studios Launcher",
+    "description": "Oficial Laucnher For All Laru Studios Projects",
     "author": "Shisuys (https://github.com/shisuiicaro/)",
     "license": "UNLICENSED",
-    "homepage": "https://github.com/Shisuiicaro/HastaStudiosLauncher",
+    "homepage": "https://github.com/Shisuiicaro/Laru-studios-launcher",
     "bugs": {
         "url": "https://discord.gg/zsmp"
     },
@@ -47,6 +47,6 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/Shisuiicaro/HastaStudiosLauncher.git"
+        "url": "git+https://github.com/Shisuiicaro/Laru-studios-launcher.git"
     }
 }

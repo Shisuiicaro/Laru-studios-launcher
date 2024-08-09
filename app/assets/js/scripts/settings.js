@@ -1,14 +1,13 @@
-// Requirements
+﻿// Requirements
 const os     = require('os')
 const semver = require('semver')
 
+const { MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR } = require('./assets/js/ipcconstants')
 const fs = require('fs-extra');
 
 const LangLoader                                   = require('./assets/js/langloader')
 const DropinModUtil                                = require('./assets/js/dropinmodutil')
-const { MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR } = require('./assets/js/ipcconstants')
 const logger = LoggerUtil.getLogger('Settings')
-
 const settingsState = {
     invalid: new Set()
 }
@@ -330,7 +329,7 @@ function fullSettingsSave() {
     saveModConfiguration()
     ConfigManager.save()
     saveDropinModConfiguration()
-    saveShaderpackSettings()
+
 }
 
 /* Closes the settings view and saves all data. */
@@ -625,121 +624,88 @@ function refreshAuthAccountSelected(uuid){
 const settingsCurrentMicrosoftAccounts = document.getElementById('settingsCurrentMicrosoftAccounts')
 const settingsCurrentMojangAccounts = document.getElementById('settingsCurrentMojangAccounts')
 
-/**
- * Add auth account elements for each one stored in the authentication database.
- */
+let base64Image = '';
+
 async function fetchSkinAndConvertToBase64(username) {
-  try {
-    const skinURL = `https://auth.zelthoriaismp.cloud/skin/${username}.png`;
-    const response = await fetch(skinURL);
+    try {
+        const timestamp = new Date().getTime(); 
+        const skinURL = `https://larusmp.site/skin/skins/${username}.png?timestamp=${timestamp}`;
+        const response = await fetch(skinURL);
 
-    if (!response.ok) {
-      throw new Error('Error fetching skin image: ' + response.status);
+
+        const blob = await response.blob();
+
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                resolve(reader.result.split(',')[1]);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch {
+        return 'X-Steve';
     }
-
-    const blob = await response.blob();
-
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result.split(',')[1]);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    return 'MHF_Question';
-  }
 }
-    
-async function populateAuthAccounts() {
-  const authAccounts = ConfigManager.getAuthAccounts();
-  const authKeys = Object.keys(authAccounts);
-  if (authKeys.length === 0) {
-    return;
-  }
-  const selectedUUID = ConfigManager.getSelectedAccount().uuid;
 
-  let microsoftAuthAccountStr = '';
-  let mojangAuthAccountStr = '';
+async function populateAuthAccounts() {
+    const authAccounts = ConfigManager.getAuthAccounts();
+    const authKeys = Object.keys(authAccounts);
+    if (authKeys.length === 0) {
+        return;
+    }
+    const selectedUUID = ConfigManager.getSelectedAccount().uuid;
+
+    let microsoftAuthAccountStr = '';
+    let mojangAuthAccountStr = '';
 
     const promises = [];
 
-  authKeys.forEach((val) => {
-    const acc = authAccounts[val]
+    authKeys.forEach((val) => {
+        const acc = authAccounts[val];
 
-promises.push(
+        promises.push(
             fetchSkinAndConvertToBase64(acc.displayName)
                 .then(result => {
                     const encodedBase64 = encodeURIComponent(result);
-                    const skinURL = 'https://visage.surgeplay.com/bust/256/X-Steve'
-                    const skinMSFT = `https://visage.surgeplay.com/bust/256/${acc.uuid}`;
+                    const skinURL = `https://visage.surgeplay.com/bust/256/${encodedBase64}`;
 
-                    const accBS = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
-        <div class="settingsAuthAccountLeft">
-            <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="${skinURL}">
-        </div>
-        <div class="settingsAuthAccountRight">
-            <div class="settingsAuthAccountDetails">
-                <div class="settingsAuthAccountDetailPane">
-                    <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.username')}</div>
-                    <div class="settingsAuthAccountDetailValue">${acc.displayName}</div>
-                </div>
-                <div class="settingsAuthAccountDetailPane">
-                    <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.uuid')}</div>
-                    <div class="settingsAuthAccountDetailValue">${acc.uuid}</div>
-                </div>
-            </div>
-            <div class="settingsAuthAccountActions">
-                <button class="settingsAuthAccountSelect" ${selectedUUID === acc.uuid ? 'selected>' + Lang.queryJS('settings.authAccountPopulate.selectedAccount') : '>' + Lang.queryJS('settings.authAccountPopulate.selectAccount')}</button>
-                <div class="settingsAuthAccountWrapper">
-                    <button class="settingsAuthAccountLogOut">${Lang.queryJS('settings.authAccountPopulate.logout')}</button>
-                </div>
-            </div>
-        </div>
-    </div>`
-    
-    const accMSFT = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
-    <div class="settingsAuthAccountLeft">
-        <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="${skinMSFT}">
-    </div>
-    <div class="settingsAuthAccountRight">
-        <div class="settingsAuthAccountDetails">
-            <div class="settingsAuthAccountDetailPane">
-                <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.username')}</div>
-                <div class="settingsAuthAccountDetailValue">${acc.displayName}</div>
-            </div>
-            <div class="settingsAuthAccountDetailPane">
-                <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.uuid')}</div>
-                <div class="settingsAuthAccountDetailValue">${acc.uuid}</div>
-            </div>
-        </div>
-        <div class="settingsAuthAccountActions">
-            <button class="settingsAuthAccountSelect" ${selectedUUID === acc.uuid ? 'selected>' + Lang.queryJS('settings.authAccountPopulate.selectedAccount') : '>' + Lang.queryJS('settings.authAccountPopulate.selectAccount')}</button>
-            <div class="settingsAuthAccountWrapper">
-                <button class="settingsAuthAccountLogOut">${Lang.queryJS('settings.authAccountPopulate.logout')}</button>
-            </div>
-        </div>
-    </div>
-</div>`
+                    const accHtml = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
+                        <div class="settingsAuthAccountLeft">
+                        <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="${skinURL}">
+                        </div>
+                        <div class="settingsAuthAccountRight">
+                            <div class="settingsAuthAccountDetails">
+                                <div class="settingsAuthAccountDetailPane">
+                                    <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.username')}</div>
+                                    <div class="settingsAuthAccountDetailValue">${acc.displayName}</div>
+                                </div>
+                                <div class="settingsAuthAccountDetailPane">
+                                    <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.uuid')}</div>
+                                    <div class="settingsAuthAccountDetailValue">${acc.uuid}</div>
+                                </div>
+                            </div>
+                            <div class="settingsAuthAccountActions">
+                                <button class="settingsAuthAccountSelect" ${selectedUUID === acc.uuid ? 'selected>' + Lang.queryJS('settings.authAccountPopulate.selectedAccount') : '>' + Lang.queryJS('settings.authAccountPopulate.selectAccount')}</button>
+                                <div class="settingsAuthAccountWrapper">
+                                    <button class="settingsAuthAccountLogOut">${Lang.queryJS('settings.authAccountPopulate.logout')}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
 
-    if(acc.type === 'microsoft') {
-        microsoftAuthAccountStr += accMSFT
-    } else {
-        mojangAuthAccountStr += accBS
-    }
-})
-.catch(error => {
-    console.error('Erro ao buscar e converter a imagem:', error);
-})
-);
-})
+                    if (acc.type === 'microsoft') {
+                        microsoftAuthAccountStr += accHtml;
+                    } else {
+                        mojangAuthAccountStr += accHtml;
+                    }
+                })
+        );
+    });
 
-await Promise.all(promises);
-
+    await Promise.all(promises);
     return { microsoftAuthAccountStr, mojangAuthAccountStr };
 }
-
 
 /**
  * Prepare the accounts tab for display.
@@ -804,6 +770,7 @@ function parseModulesForUI(mdls, submodules, servConf){
     let optMods = ''
 
     resolveLanguageForUI()
+
 
     for(const mdl of mdls){
 
@@ -914,7 +881,7 @@ function _saveModConfiguration(modConf){
             }
         }
     }
-    return modConf
+  return modConf
 }
 
 // Drop-in mod elements.
@@ -971,7 +938,7 @@ function bindDropinModsRemoveButton(){
                 setOverlayContent(
                     Lang.queryJS('settings.dropinMods.deleteFailedTitle', { fullName }),
                     Lang.queryJS('settings.dropinMods.deleteFailedMessage'),
-                    Lang.queryJS('settings.dropinMods.okButton')
+                    Lang.queryJS('settings.okButton')
                 )
                 setOverlayHandler(null)
                 toggleOverlay(true)
@@ -1057,6 +1024,7 @@ document.addEventListener('keydown', async (e) => {
     }
 })
 
+
 async function reloadDropinMods(){
     await resolveDropinModsForUI()
     bindDropinModsRemoveButton()
@@ -1066,8 +1034,12 @@ async function reloadDropinMods(){
 
 //Languages
 let langCodes = {
+    "ja_JP": "日本人",
     "en_US": "English",
-    "pt_BR": "Portugues-BR",
+    "es_ES": "Español",
+    "fr_FR": "Français",
+    "ko_KR": "한국어",
+    "pt_BR": "Português"
 } 
 
 async function resolveLanguageForUI() {
@@ -1111,6 +1083,7 @@ function setCurrentLanguageInUi(arr, selected){
         }
     }
 }
+
 
 // Shaderpack
 
@@ -1240,6 +1213,7 @@ function saveAllModConfigurations(){
     saveModConfiguration()
     ConfigManager.save()
     saveDropinModConfiguration()
+    saveShaderpackSettings()
 }
 
 /**
@@ -1257,12 +1231,12 @@ function animateSettingsTabRefresh(){
  * Prepare the Mods tab for display.
  */
 async function prepareModsTab(first){
-    await resolveModsForUI()
     await resolveDropinModsForUI()
     await resolveShaderpacksForUI()
     bindDropinModsRemoveButton()
     bindDropinModFileSystemButton()
     bindShaderpackButton()
+    await resolveModsForUI()
     bindModsToggleSwitch()
     await loadSelectedServerOnModsTab()
 }
@@ -1506,7 +1480,6 @@ function bindMinMaxRam(server) {
     settingsMinRAMRange.setAttribute('max', SETTINGS_MAX_MEMORY)
     settingsMinRAMRange.setAttribute('min', SETTINGS_MIN_MEMORY)
 }
-
 /**
  * Prepare the Java tab for display.
  */
@@ -1580,7 +1553,7 @@ function populateAboutVersionInformation(){
  */
 function populateReleaseNotes(){
     $.ajax({
-        url: 'https://github.com/Shisuiicaro/HastaStudiosLauncher/releases.atom',
+        url: 'https://github.com/Shisuiicaro/Laru-studios-launcher/releases.atom',
         success: (data) => {
             const version = 'v' + remote.app.getVersion()
             const entries = $(data).find('entry')
@@ -1704,6 +1677,29 @@ async function prepareSettings(first = false) {
     prepareAccountsTab()
     await prepareJavaTab()
     prepareAboutTab()
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var enviarSkinButton = document.getElementById('enviarSkinButton');
+    if (enviarSkinButton) {
+        enviarSkinButton.addEventListener('click', function() {
+            openSkinUploader();
+        });
+    }
+});
+
+var skinUploaderWindow;
+
+function openSkinUploader() {
+    var url = 'https://larusmp.site/skin/index.html';
+    skinUploaderWindow = window.open(url, '_blank', 'width=600,height=900');
+    
+    var checkURLChange = setInterval(function() {
+        if (skinUploaderWindow && skinUploaderWindow.location.href.includes('upload_skin.php')) {
+            clearInterval(checkURLChange);
+            skinUploaderWindow.close();
+        }
+    }, 1000);
 }
 
 // Prepare the settings UI on startup.
