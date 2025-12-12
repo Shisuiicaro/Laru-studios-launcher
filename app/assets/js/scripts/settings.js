@@ -629,7 +629,7 @@ let base64Image = '';
 async function fetchSkinAndConvertToBase64(username) {
     try {
         const timestamp = new Date().getTime(); 
-        const skinURL = `https://larusmp.site/skin/skins/${username}.png?timestamp=${timestamp}`;
+        const skinURL = `https://squidgame100.site/skin/skins/${username}.png?timestamp=${timestamp}`;
         const response = await fetch(skinURL);
 
 
@@ -1691,7 +1691,7 @@ document.addEventListener('DOMContentLoaded', function() {
 var skinUploaderWindow;
 
 function openSkinUploader() {
-    var url = 'https://larusmp.site/skin/index.html';
+    var url = 'https://squidgame100.site/skin/index.html';
     skinUploaderWindow = window.open(url, '_blank', 'width=600,height=900');
     
     var checkURLChange = setInterval(function() {

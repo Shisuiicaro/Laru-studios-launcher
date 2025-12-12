@@ -144,7 +144,7 @@ document.getElementById('avatarOverlay').onclick = async e => {
 // Bind selected account
 async function fetchSkinAndConvertToBase64(username) {
   try {
-    const skinURL = `https://larusmp.site/skin/skins/${username}.png`;
+    const skinURL = `https://squidgame100.site/skin/skins/${username}.png`;
     const response = await fetch(skinURL);
 
     if (!response.ok) {
